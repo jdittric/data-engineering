@@ -24,28 +24,32 @@
             %span.icon-bar
             %span.icon-bar
           %a.navbar-brand LivingSocial TSV file uploader
-        .navbar-collapse.collapse
-          %form.navbar-form.navbar-right(role="form")
+        -if !warden.authenticated?
+          %form.navbar-form.navbar-right(role='form' method='post' action='/login')
             .form-group
-              %input.form-control(type="text" placeholder="Username")
-            .form-group
-              %input.form-control(type="password" placeholder="Password")
-            %button.btn.btn-success(type="submit") Sign in
+              %input.form-control(type='text' placeholder='OpenID Username')
+            %button.btn.btn-success(type='submit') Login
+        -else
+          %a.navbar-brand.navbar-right(href='/logout') Logout
 
     .jumbotron
       .container
         %h1 TSV file uploader service
-        %p Sign in to get started.
+        %p Please log in to get started, then choose a tab-delimited file to import using the form below.
         %br
-        %form(method="post" enctype='multipart/form-data')
-          %input(type='file' name='infile')
-          %input(type='submit' value='upload')
+        .row
+          .col-lg-6
+            %form(method='post' enctype='multipart/form-data')
+              .input-group
+                %span.input-group-btn
+                  %input.form-control#infile(type='file' name='infile')
+              %button.btn.btn-primary#upload(type='submit') Upload
 
     .container
       .row
         .col-md-12
-          %h2 Heading
-          %p Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.
+          %h2 Instructions
+          %p First, sign in using your OpenID credentials.  Next, upload the tab-delimited file using the file control in the form above.  Submit using the upload button.  You will be redirected to the summary page upon upload success.
     %hr
     %footer
       .container

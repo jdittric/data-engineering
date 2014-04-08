@@ -24,20 +24,12 @@
             %span.icon-bar
             %span.icon-bar
           %a.navbar-brand LivingSocial TSV file uploader
-        .navbar-collapse.collapse
-          %form.navbar-form.navbar-right(role="form")
-            .form-group
-              %input.form-control(type="text" placeholder="Username")
-            .form-group
-              %input.form-control(type="password" placeholder="Password")
-            %button.btn.btn-success(type="submit") Sign in
 
     .jumbotron
       .container
         %h1 Import Summary 
-        %p The results of your import:
+        %p The results of all imports:
         %div
-          /TODO: pretty json table output
           -total = 0
           %table
             %tr
@@ -55,22 +47,23 @@
                 %td #{customer.name}
                 %td #{order.quantity}
                 %td #{item.description}
-                %td #{item.price}
+                %td.currency #{sprintf( "%0.02f", item.price)}
                 -order_price = order.quantity * item.price
-                %td #{order_price}
+                %td.currency #{sprintf( "%0.02f", order_price)}
                 -total += order_price
                 %td #{merchant.name}
             %tr
+              %td(colspan="3")
               %td
-                %strong Total Sales: $#{total}         
+                %strong Total Sales:
+              %td.total.currency
+                %strong $#{sprintf( "%0.02f", total)}
+              %td
+        %div
         %ul.nav.nav-pills
           %li.active
             %a(href="/") Upload another file 
-    .container
-      .row
-        .col-md-12
-          %h2 Heading
-          %p Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.
+
     %hr
     %footer
       .container
