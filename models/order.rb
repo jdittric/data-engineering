@@ -1,5 +1,5 @@
 class Order < ActiveRecord::Base
-  validates :quantity, presence: true
+  validates :quantity, presence: true, numericality: { only_integer: true }
   validates :customer_id, presence: true
   validates :merchant_id, presence: true
   validates :item_id, presence: true

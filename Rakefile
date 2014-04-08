@@ -1,2 +1,2 @@
-require './tsv_service.rb'
+require './tsv_service'
 require 'sinatra/activerecord/rake'

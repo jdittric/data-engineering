@@ -26,8 +26,6 @@
           %a.navbar-brand LivingSocial TSV file uploader
         -if !warden.authenticated?
           %form.navbar-form.navbar-right(role='form' method='post' action='/login')
-            .form-group
-              %input.form-control(type='text' placeholder='OpenID Username')
             %button.btn.btn-success(type='submit') Login
         -else
           %a.navbar-brand.navbar-right(href='/logout') Logout

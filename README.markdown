@@ -1,3 +1,58 @@
+# Submission Setup Instructions
+I implemented this challenge in Sinatra, not only because it is lightweight, but you can easily integrate ActiveRecord for the relational database ORM, Rack-based OpenID authentication, and handle HAML frontend templating.  Included is a Bundler Gemfile for easy dependency management.
+
+Clone the git repository 
+```sh
+$ git clone https://github.com/jdittric/data-engineering.git
+$ cd data-engineering/
+```
+
+Install necessary gem dependencies
+```sh
+$ bundle install
+```
+You may need to use `sudo` for install permissions.  Sinatra will pick up and use thin as the webserver automatically.
+
+Rake migration task
+```sh
+$ rake db:migrate
+```
+
+Start the app
+```sh
+$ ruby tsv_service.rb
+```
+
+Sinatra will start thin on the default listening port (4567).
+
+* Browse to localhost:4567
+
+* Login => upload tab-separated data files => ??? => Profit!
+
+
+## Caveats
+There are several suboptimal implementations in this submission, I will now point these out, since I am ordinarily more careful.
+
+1. *Rack::Session secret* - this should ideally be a much stronger value, and in production set by environment.  Hard-coding this value in source is considered a security risk.
+
+2. *Warden OpenID strategy* - when authenticating, the user's OpenID response is merely checked to see if it succeeded.  Ordinarily this is matched up with a particular row in a User table of known users, by something like the person's unique email address, which is not implemented.
+
+3. *OpenID nonce age* - If you do not have accurate system time, e.g., by synching over ntp with `ntpdate` regularly, you will receive an OpenID auth failure response due to stale nonce time.  This is prone to happen on virtual machines that have been restarted from a suspended state.  The fix is as simple as:
+
+```sh
+$ sudo ntpdate pool.ntp.org
+```
+
+
+## Comments
+* What a fun little problem, thanks LivingSocial.  I honestly have not used normalized, relational databases for some time in favor of NoSQL, so it was a nice refresher with sqlite3.
+
+* Please excuse my mixing of old (`{:key => value}`) and new (`{key: value}`) Hash syntax, it's a work in progress.
+
+* This app demo is dedicated to Jim Weirich; I'm reminded that rake is such a valuable tool, so thanks for a lifetime of giving to the Ruby dev community.
+
+---
+
 # Challenge for Software Engineer - Big Data 
 To better assess a candidates development skills, we would like to provide the following challenge.  You have as much time as you'd like (though we ask that you not spend more than a few hours).
 

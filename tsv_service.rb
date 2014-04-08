@@ -30,7 +30,7 @@ ActiveRecord::Base.establish_connection(
   :database =>  'tsv_service.sqlite3.db'
 )
 
-#=begin WARDEN AUTH
+#=begin WARDEN OPENID AUTH
 use Rack::OpenID
 use Warden::Manager do |manager|
   Warden::Strategies.add(:openid) do
@@ -39,7 +39,6 @@ use Warden::Manager do |manager|
         case resp.status
         when :success
           u = env["rack.openid.response"].identity_url
-          #u = User.find_by_identity_url(resp.identity_url)
           success!(u)
         when :cancel
           fail!("OpenID auth cancelled")
@@ -53,7 +52,8 @@ use Warden::Manager do |manager|
   end
   manager.default_strategies :openid
   manager.failure_app = lambda do
-    Rack::Response.new("Failed").finish
+    status, headers, body = @application.call(request.env)
+    Rack::Response.new(body, status, headers).finish
   end
 end
 
@@ -68,12 +68,12 @@ get '/' do
 end
 
 post '/login' do
-  warden.authenticate!(:openid)
+  warden.authenticate!(:openid, :scope => :default)
   redirect to('/')
 end
 
 get '/logout' do
-  warden.logout
+  warden.logout(:default)
   redirect to('/')
 end
 
@@ -96,8 +96,11 @@ post "/" do
       csv = CSV.read(params['infile'][:tempfile], csv_params)
       puts csv
 
+      session[:import_start_id] = 0
+      session[:import_end_id] = 0
+
       input_obj = csv.map {|row| row.to_hash }
-      input_obj.each do |row|
+      input_obj.each_with_index do |row, index|
         c = Customer.find_or_create_by( name: row[:purchaser_name] )
         i = Item.find_or_create_by( description: row[:item_description], price: row[:item_price] )
         m = Merchant.find_or_create_by( name: row[:merchant_name], address: row[:merchant_address] )
@@ -109,8 +112,15 @@ post "/" do
         i.save!
         m.save!
         o.save!
+        if index == 0
+          session[:import_start_id] = o.id
+          puts "Imported order start ID is: #{session[:import_start_id]}"
+        elsif index == input_obj.length-1
+          session[:import_end_id] = o.id
+          puts "Imported order end ID is: #{session[:import_end_id]}"
+        end
       end
-
+      session.each { |k,v| puts "#{k}: #{v}" }
       redirect to('/summary')
     end
     
@@ -118,6 +128,5 @@ post "/" do
 end
 
 get '/summary' do
-  @orders = Order.all
   haml :summary, :format => :html5
 end

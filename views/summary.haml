@@ -28,9 +28,11 @@
     .jumbotron
       .container
         %h1 Import Summary 
-        %p The results of all imports:
+        %p The results of import:
         %div
           -total = 0
+          -start_id = session[:import_start_id].to_i
+          -end_id = session[:import_end_id].to_i
           %table
             %tr
               %th Customer
@@ -39,6 +41,7 @@
               %th Unit Price
               %th Order Price
               %th Merchant
+            -@orders = Order.where('id >= ? AND id <= ?', start_id, end_id).to_a
             -@orders.each do |order|
               %tr
                 -item = Item.find_by(id: order.item_id)
@@ -60,9 +63,9 @@
                 %strong $#{sprintf( "%0.02f", total)}
               %td
         %div
-        %ul.nav.nav-pills
-          %li.active
-            %a(href="/") Upload another file 
+          %ul.nav.nav-pills
+            %li.active
+              %a(href="/") Upload another file 
 
     %hr
     %footer
