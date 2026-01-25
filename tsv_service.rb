@@ -8,16 +8,20 @@ require 'sqlite3'
 require 'active_record'
 require 'rack/openid'
 require 'warden'
+require 'awesome_print'
 require_relative 'models/customer'
 require_relative 'models/merchant'
 require_relative 'models/item'
 require_relative 'models/order'
 
-use Rack::Session::Cookie, :key => 'rack.session',
-                           :domain => 'localhost',
-                           :path => '/',
-                           :expire_after => 6000, # In seconds
-                           :secret => 'change_me' # should be set by env in production
+use Rack::Session::Cookie, 
+  :key => 'rack.session',
+  :domain => 'localhost',
+  :path => '/',
+  :expire_after => 6000, # In seconds
+  :secret => 'da6b259bff3bc998018086f4e63b8008fdfeab33032d92470f68d021715932bcd16357e3540bf39c8399de6be37716b224b2492f1c9042fc835f523310be95ed'
+  # should be set by env in production
+  # :secret => ENV['SESSION_SECRET']
 
 helpers do
   def warden
@@ -29,6 +33,8 @@ ActiveRecord::Base.establish_connection(
   :adapter => 'sqlite3',
   :database =>  'tsv_service.sqlite3.db'
 )
+
+OpenID.fetcher.ca_file = "/etc/ssl/certs/ca-certificates.crt"
 
 #=begin WARDEN OPENID AUTH
 use Rack::OpenID
@@ -51,10 +57,29 @@ use Warden::Manager do |manager|
     end
   end
   manager.default_strategies :openid
-  manager.failure_app = lambda do
-    status, headers, body = @application.call(request.env)
+  # manager.failure_app = lambda do
+  #   status, headers, body = @application.call(request.env)
+  #   Rack::Response.new(body, status, headers).finish
+  # end
+
+  manager.failure_app = lambda { |env|
+    # The lambda receives the Rack environment (env)
+    # env['warden.options'] contains failure details (scope, message)
+    scope = env['warden.options'][:scope]
+    request_path = env['PATH_INFO']
+    ap(env)
+    status = 401
+    headers = {'Content-Type' => 'text/html'}
+    body = ["401 Unauthorized"]
     Rack::Response.new(body, status, headers).finish
-  end
+    
+    # Simple redirect logic
+    # if request_path.start_with?('/admin')
+    #   [302, { 'Location' => '/admin/login' }, ['Redirecting to admin login...']]
+    # else
+    #   [302, { 'Location' => '/login' }, ['Redirecting to login...']]
+    # end
+  }
 end
 
 =begin BASIC AUTH
