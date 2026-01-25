@@ -8,6 +8,7 @@ require 'sqlite3'
 require 'active_record'
 require 'rack/openid'
 require 'warden'
+require 'json'
 require 'awesome_print'
 require_relative 'models/customer'
 require_relative 'models/merchant'
@@ -62,24 +63,37 @@ use Warden::Manager do |manager|
   #   Rack::Response.new(body, status, headers).finish
   # end
 
-  manager.failure_app = lambda { |env|
+  # manager.failure_app = lambda { |env|
+  #   # The lambda receives the Rack environment (env)
+  #   # env['warden.options'] contains failure details (scope, message)
+  #   scope = env['warden.options'][:scope]
+  #   request_path = env['PATH_INFO']
+  #   ap(env)
+  #   status = 401
+  #   headers = {'Content-Type' => 'text/html'}
+  #   body = ["401 Unauthorized"]
+  #   Rack::Response.new(body, status, headers).finish
+    
+  #   # Simple redirect logic
+  #   # if request_path.start_with?('/admin')
+  #   #   [302, { 'Location' => '/admin/login' }, ['Redirecting to admin login...']]
+  #   # else
+  #   #   [302, { 'Location' => '/login' }, ['Redirecting to login...']]
+  #   # end
+  # }
+
+  manager.failure_app = -> (env) do
     # The lambda receives the Rack environment (env)
     # env['warden.options'] contains failure details (scope, message)
     scope = env['warden.options'][:scope]
+    message = env['warden.options'][:message]
     request_path = env['PATH_INFO']
     ap(env)
     status = 401
     headers = {'Content-Type' => 'text/html'}
-    body = ["401 Unauthorized"]
+    body = [env.to_s]
     Rack::Response.new(body, status, headers).finish
-    
-    # Simple redirect logic
-    # if request_path.start_with?('/admin')
-    #   [302, { 'Location' => '/admin/login' }, ['Redirecting to admin login...']]
-    # else
-    #   [302, { 'Location' => '/login' }, ['Redirecting to login...']]
-    # end
-  }
+  end
 end
 
 =begin BASIC AUTH

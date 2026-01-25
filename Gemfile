@@ -10,6 +10,8 @@ gem 'rake'
 gem 'warden'
 gem 'rack-openid'
 gem 'thin'
+gem 'json'
+gem 'awesome_print'
 
 gem "rackup", "~> 2.3"
 gem "puma", "~> 7.2"
